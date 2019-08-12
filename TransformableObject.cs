@@ -4,24 +4,33 @@ using System.Linq;
 
 namespace OSharp.Animation
 {
-    public abstract class TransformableObject<T1, T2> where T1 : struct where T2 : struct
+    public abstract class TransformableObject<T> where T : struct
     {
-        protected abstract void FadeAction(List<TransformAction<T1>> actions);
-        protected abstract void RotateAction(List<TransformAction<T1>> actions);
-        protected abstract void MoveAction(List<TransformAction<T1>> actions);
-        protected abstract void ScaleVecAction(List<TransformAction<T1>> actions);
-        protected abstract void ColorAction(List<TransformAction<T1>> actions);
-        protected abstract void BlendAction(List<TransformAction<T1>> actions);
-        protected abstract void FlipAction(List<TransformAction<T1>> actions);
+        protected abstract void FadeAction(List<TransformAction> actions);
+        protected abstract void RotateAction(List<TransformAction> actions);
+        protected abstract void MoveAction(List<TransformAction> actions);
+        protected abstract void Move1DAction(List<TransformAction> actions, bool isHorizon);
+        protected abstract void ScaleVecAction(List<TransformAction> actions);
+        protected abstract void ColorAction(List<TransformAction> actions);
+        protected abstract void BlendAction(List<TransformAction> actions);
+        protected abstract void FlipAction(List<TransformAction> actions);
+
+        protected abstract void HandleLoopGroup((double startTime, int loopTimes, ITransformable<T> transformList) tuple);
 
         protected abstract void StartAnimation();
         protected abstract void EndAnimation();
-        public void ApplyAnimation(Action<ITransformable<T1, T2>> func)
+        public void ApplyAnimation(Action<ITransformable<T>> func)
         {
             StartAnimation();
-            var internalObj = new InternalTransformableObject<T1, T2>();
+            var internalObj = new InternalTransformableObject<T>();
             func?.Invoke(internalObj);
-            MinTime = internalObj.TransformDictionary.Min(k => k.Value.Min(o => o.StartTime));
+            var time1 = internalObj.TransformDictionary.Count > 0
+                ? internalObj.TransformDictionary.Min(k => k.Value.Min(o => o.StartTime))
+                : double.MaxValue;
+            var time2 = internalObj.loopList.Count > 0
+                ? internalObj.loopList.Min(k => k.startTime)
+                : double.MaxValue;
+            MinTime = Math.Min(time1, time2);
 
             foreach (var transform in internalObj.TransformDictionary)
             {
@@ -35,6 +44,12 @@ namespace OSharp.Animation
                         break;
                     case TransformType.Move:
                         MoveAction(transform.Value);
+                        break;
+                    case TransformType.MoveX:
+                        Move1DAction(transform.Value, true);
+                        break;
+                    case TransformType.MoveY:
+                        Move1DAction(transform.Value, false);
                         break;
                     case TransformType.ScaleVec:
                         ScaleVecAction(transform.Value);
@@ -53,9 +68,14 @@ namespace OSharp.Animation
                 }
             }
 
+            foreach (var tuple in internalObj.loopList)
+            {
+                HandleLoopGroup(tuple);
+            }
+
             EndAnimation();
         }
 
-        public T1 MinTime { get; set; }
+        public double MinTime { get; set; }
     }
 }

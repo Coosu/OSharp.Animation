@@ -5,17 +5,19 @@ using System.Threading.Tasks;
 
 namespace OSharp.Animation
 {
-    public interface ITransformable<T1, T2> where T1 : struct where T2 : struct
+    public interface ITransformable<T> where T : struct
     {
-        void Fade(Easing easing, T1 startTime, T1 endTime, T2 startOpacity, T2 endOpacity);
-        void Rotate(Easing easing, T1 startTime, T1 endTime, T2 startDeg, T2 endDeg);
+        void Fade(Easing easing, double startTime, double endTime, T startOpacity, T endOpacity);
+        void Rotate(Easing easing, double startTime, double endTime, T startDeg, T endDeg);
 
-        void Move(Easing easing, T1 startTime, T1 endTime, Vector2<T2> startPos, Vector2<T2> endPos);
-        void ScaleVec(Easing easing, T1 startTime, T1 endTime, Vector2<T2> startSize, Vector2<T2> endSize);
-        void Color(Easing easing, T1 startTime, T1 endTime, Vector3<T2> startColor, Vector3<T2> endColor);
+        void Move(Easing easing, double startTime, double endTime, Vector2<T> startPos, Vector2<T> endPos);
+        void MoveX(Easing easing, double startTime, double endTime, T startX, T endX);
+        void MoveY(Easing easing, double startTime, double endTime, T startY, T endY);
+        void ScaleVec(Easing easing, double startTime, double endTime, Vector2<T> startSize, Vector2<T> endSize);
+        void Color(Easing easing, double startTime, double endTime, Vector3<T> startColor, Vector3<T> endColor);
 
-        void Blend(T1 startTime, T1 endTime, BlendMode mode);
+        void Blend(double startTime, double endTime, BlendMode mode);
 
-        void Flip(T1 startTime, T1 endTime, FlipMode mode);
+        void Flip(double startTime, double endTime, FlipMode mode);
     }
 }

@@ -2,6 +2,8 @@
 {
     public enum TransformType
     {
-        Fade, Rotate, Move, ScaleVec, Color, Blend, Flip
+        Fade, Rotate, Move, ScaleVec, Color, Blend, Flip,
+        MoveX,
+        MoveY
     }
 }

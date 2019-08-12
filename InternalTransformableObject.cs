@@ -3,65 +3,95 @@ using System.Collections.Generic;
 
 namespace OSharp.Animation
 {
-    internal class InternalTransformableObject<T1, T2> : ITransformable<T1, T2> where T1 : struct where T2 : struct
+    public class InternalTransformableObject<T> : ITransformable<T> where T : struct
     {
-        internal readonly Dictionary<TransformType, List<TransformAction<T1>>> TransformDictionary =
-            new Dictionary<TransformType, List<TransformAction<T1>>>();
+        internal readonly Dictionary<TransformType, List<TransformAction>> TransformDictionary =
+            new Dictionary<TransformType, List<TransformAction>>();
 
-        public void Fade(Easing easing, T1 startTime, T1 endTime, T2 startOpacity, T2 endOpacity)
+        internal bool _supportLoop = true;
+
+        internal List<(double startTime, int loopTimes, InternalTransformableObject<T> transformList)> loopList =
+            new List<(double, int, InternalTransformableObject<T>)>();
+        public void Fade(Easing easing, double startTime, double endTime, T startOpacity, T endOpacity)
         {
             const TransformType type = TransformType.Fade;
             AddKey(type);
-            TransformDictionary[type].Add(new TransformAction<T1>(easing, startTime, endTime, startOpacity, endOpacity));
+            TransformDictionary[type].Add(new TransformAction(easing, startTime, endTime, startOpacity, endOpacity));
         }
 
-        public void Rotate(Easing easing, T1 startTime, T1 endTime, T2 startDeg, T2 endDeg)
+        public void Rotate(Easing easing, double startTime, double endTime, T startDeg, T endDeg)
         {
             const TransformType type = TransformType.Rotate;
             AddKey(type);
-            TransformDictionary[type].Add(new TransformAction<T1>(easing, startTime, endTime, startDeg, endDeg));
+            TransformDictionary[type].Add(new TransformAction(easing, startTime, endTime, startDeg, endDeg));
         }
 
-        public void Move(Easing easing, T1 startTime, T1 endTime, Vector2<T2> startPos, Vector2<T2> endPos)
+        public void Move(Easing easing, double startTime, double endTime, Vector2<T> startPos, Vector2<T> endPos)
         {
             const TransformType type = TransformType.Move;
             AddKey(type);
-            TransformDictionary[type].Add(new TransformAction<T1>(easing, startTime, endTime, startPos, endPos));
+            TransformDictionary[type].Add(new TransformAction(easing, startTime, endTime, startPos, endPos));
         }
 
-        public void ScaleVec(Easing easing, T1 startTime, T1 endTime, Vector2<T2> startSize, Vector2<T2> endSize)
+        public void MoveX(Easing easing, double startTime, double endTime, T startX, T endX)
+        {
+            const TransformType type = TransformType.MoveX;
+            AddKey(type);
+            TransformDictionary[type].Add(new TransformAction(easing, startTime, endTime, startX, endX));
+        }
+
+        public void MoveY(Easing easing, double startTime, double endTime, T startY, T endY)
+        {
+            const TransformType type = TransformType.MoveY;
+            AddKey(type);
+            TransformDictionary[type].Add(new TransformAction(easing, startTime, endTime, startY, endY));
+        }
+
+        public void ScaleVec(Easing easing, double startTime, double endTime, Vector2<T> startSize, Vector2<T> endSize)
         {
             const TransformType type = TransformType.ScaleVec;
             AddKey(type);
-            TransformDictionary[type].Add(new TransformAction<T1>(easing, startTime, endTime, startSize, endSize));
+            TransformDictionary[type].Add(new TransformAction(easing, startTime, endTime, startSize, endSize));
         }
 
-        public void Color(Easing easing, T1 startTime, T1 endTime, Vector3<T2> startColor, Vector3<T2> endColor)
+        public void Color(Easing easing, double startTime, double endTime, Vector3<T> startColor, Vector3<T> endColor)
         {
             const TransformType type = TransformType.Color;
             AddKey(type);
-            TransformDictionary[type].Add(new TransformAction<T1>(easing, startTime, endTime, startColor, endColor));
+            TransformDictionary[type].Add(new TransformAction(easing, startTime, endTime, startColor, endColor));
         }
 
-        public void Blend(T1 startTime, T1 endTime, BlendMode mode)
+        public void Blend(double startTime, double endTime, BlendMode mode)
         {
             const TransformType type = TransformType.Blend;
             AddKey(type);
-            TransformDictionary[type].Add(new TransformAction<T1>(Easing.Linear, startTime, endTime, mode, mode));
+            TransformDictionary[type].Add(new TransformAction(Easing.Linear, startTime, endTime, mode, mode));
         }
 
-        public void Flip(T1 startTime, T1 endTime, FlipMode mode)
+        public void Flip(double startTime, double endTime, FlipMode mode)
         {
             const TransformType type = TransformType.Flip;
             AddKey(type);
-            TransformDictionary[type].Add(new TransformAction<T1>(Easing.Linear, startTime, endTime, mode, mode));
+            TransformDictionary[type].Add(new TransformAction(Easing.Linear, startTime, endTime, mode, mode));
+        }
+
+
+        public void StartLoopGroup(double startTime, int loopTimes, Action<ITransformable<T>> func)
+        {
+            var loopGroup = new InternalTransformableObject<T>
+            {
+                _supportLoop = false
+            };
+
+            func?.Invoke(loopGroup);
+            loopList.Add((startTime, loopTimes, loopGroup));
         }
 
         private void AddKey(TransformType type)
         {
             if (!TransformDictionary.ContainsKey(type))
             {
-                TransformDictionary.Add(type, new List<TransformAction<T1>>());
+                TransformDictionary.Add(type, new List<TransformAction>());
             }
         }
     }
