@@ -30,7 +30,16 @@ namespace OSharp.Animation
             var time2 = internalObj.loopList.Count > 0
                 ? internalObj.loopList.Min(k => k.startTime)
                 : double.MaxValue;
+            
+            var time3 = internalObj.TransformDictionary.Count > 0
+                ? internalObj.TransformDictionary.Max(k => k.Value.Max(o => o.EndTime))
+                : double.MinValue;
+            var time4 = internalObj.loopList.Count > 0
+                ? internalObj.loopList.Max(k =>
+                    k.transformList.TransformDictionary.Max(o => o.Value.Max(s => s.EndTime)))
+                : double.MinValue;
             MinTime = Math.Min(time1, time2);
+            MaxTime = Math.Max(time3, time4);
 
             foreach (var transform in internalObj.TransformDictionary)
             {
@@ -75,6 +84,8 @@ namespace OSharp.Animation
 
             EndAnimation();
         }
+
+        public double MaxTime { get; set; }
 
         public double MinTime { get; set; }
     }
